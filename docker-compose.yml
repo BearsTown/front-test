@@ -1,0 +1,14 @@
+services:
+  app:
+    image: carbon-portal
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV_FILE: ${ENV_FILE:-.env.local}
+    container_name: carbon-portal
+    ports:
+      - "3030:80"
+    env_file:
+      - ${ENV_FILE:-.env.local}
+    restart: unless-stopped
