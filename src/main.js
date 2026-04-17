@@ -2,7 +2,11 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
-// KRDS CSS 미사용 (layout.css / output.css로 스타일 관리)
-// import 'krds-vue/dist/index.css'
+import vuetify from './plugins/vuetify'
+import '@/assets/scss/global.scss'
 
-createApp(App).use(createPinia()).use(router).mount('#app')
+const app = createApp(App)
+app.use(createPinia())
+app.use(router)
+app.use(vuetify)
+app.mount('#app')
