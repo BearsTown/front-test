@@ -107,22 +107,7 @@
 
         <!-- 차트 영역 -->
         <div class="rp-chart-area">
-          <template v-if="activeTab === 'total'">
-            <div class="rp-chart-row">
-              <!-- 도넛 차트 -->
-              <div class="rp-donut" :style="{ background: donutGradient }">
-                <div class="rp-donut__hole">100%</div>
-              </div>
-              <!-- 범례 -->
-              <div class="rp-legend">
-                <div v-for="item in CHART_DATA" :key="item.label" class="rp-legend__item">
-                  <span class="rp-legend__dot" :style="{ background: item.color }" />
-                  <span class="rp-legend__label">{{ item.label }}</span>
-                  <span class="rp-legend__pct">{{ item.value }}%</span>
-                </div>
-              </div>
-            </div>
-          </template>
+          <VChart v-if="activeTab === 'total'" class="total-chart" :option="totalChartOption" autoresize />
           <div v-else class="rp-chart-placeholder">
             {{ activeTab === 'electricity' ? '전력 사용량' : '열 사용량' }} 세부 결과
           </div>
@@ -135,7 +120,14 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { PieChart } from 'echarts/charts'
+import { TooltipComponent, LegendComponent } from 'echarts/components'
+import VChart from 'vue-echarts'
 import { useScenarioStore } from '@/stores/scenario'
+
+use([CanvasRenderer, PieChart, TooltipComponent, LegendComponent])
 
 defineEmits(['close'])
 
@@ -173,15 +165,41 @@ const CHART_DATA = [
   { label: '기타시설', value: 15, color: '#e0e0e0' },
 ]
 
-const donutGradient = computed(() => {
-  let accum = 0
-  const stops = CHART_DATA.map(item => {
-    const start = accum
-    accum += item.value
-    return `${item.color} ${start}% ${accum}%`
-  })
-  return `conic-gradient(${stops.join(', ')})`
-})
+const totalChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'item',
+    formatter: (p) => `${p.name}: ${p.value}%`,
+  },
+  legend: {
+    orient: 'vertical',
+    right: 10,
+    top: 'middle',
+    itemWidth: 10,
+    itemHeight: 10,
+    itemStyle: { borderRadius: 3, borderWidth: 0 },
+    textStyle: { fontSize: 12, color: '#555' },
+    formatter: (name) => {
+      const item = CHART_DATA.find(d => d.label === name)
+      return `{nm|${name}}{pct|${item?.value ?? 0}%}`
+    },
+    rich: {
+      nm:  { fontSize: 12, color: '#555',   width: 68 },
+      pct: { fontSize: 12, fontWeight: 'bold', color: '#1a1a1a', width: 36, align: 'right' },
+    },
+  },
+  series: [{
+    type: 'pie',
+    radius: ['50%', '75%'],
+    center: ['36%', '50%'],
+    label: { show: false },
+    emphasis: { label: { show: false } },
+    data: CHART_DATA.map(d => ({
+      name: d.label,
+      value: d.value,
+      itemStyle: { color: d.color, borderRadius: 3 },
+    })),
+  }],
+}))
 </script>
 
 <style lang="scss" scoped>
@@ -476,70 +494,8 @@ const donutGradient = computed(() => {
   padding: 20px;
 }
 
-.rp-chart-row {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-
-// ── 도넛 차트 ─────────────────────────────────────────
-.rp-donut {
-  flex-shrink: 0;
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  position: relative;
-
-  &__hole {
-    position: absolute;
-    inset: 23%;
-    background: $color-white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: $font-weight-bold;
-    color: #333;
-    letter-spacing: -0.3px;
-  }
-}
-
-// ── 범례 ─────────────────────────────────────────────
-.rp-legend {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-
-  &__item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__dot {
-    flex-shrink: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-  }
-
-  &__label {
-    flex: 1;
-    font-size: 12px;
-    font-weight: $font-weight-medium;
-    color: #555;
-    letter-spacing: -0.24px;
-  }
-
-  &__pct {
-    font-size: 12px;
-    font-weight: $font-weight-semibold;
-    color: #1a1a1a;
-    letter-spacing: -0.24px;
-  }
+.total-chart {
+  height: 220px;
 }
 
 // ── 플레이스홀더 ──────────────────────────────────────

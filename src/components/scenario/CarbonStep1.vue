@@ -22,41 +22,31 @@
         </v-icon>
       </div>
 
-      <template v-if="openSections.area">
-        <div class="cs-cards" @click.stop>
-          <!-- 총 부지면적 -->
-          <div class="cs-card">
-            <div class="cs-card__row">
-              <span class="cs-card__label">총 부지면적</span>
-              <div class="cs-card__val-wrap">
-                <span class="cs-card__val">{{ totalSiteArea.toLocaleString() }}</span>
-                <span class="cs-unit">㎡</span>
-              </div>
-            </div>
-            <div class="stacked-bar">
-              <div class="stacked-bar__layer stacked-bar__layer--blue" />
-              <div class="stacked-bar__layer stacked-bar__layer--pink" :style="{ width: siteMixedWidth }" />
-              <div class="stacked-bar__layer stacked-bar__layer--yellow" :style="{ width: siteResidenceWidth }" />
+      <div v-if="openSections.area" class="cs-cards" @click.stop>
+        <!-- 총 부지면적 -->
+        <div class="cs-card">
+          <div class="cs-card__row">
+            <span class="cs-card__label">총 부지면적</span>
+            <div class="cs-card__val-wrap">
+              <span class="cs-card__val">{{ totalSiteArea.toLocaleString() }}</span>
+              <span class="cs-unit">㎡</span>
             </div>
           </div>
-
-          <!-- 총 연면적 -->
-          <div class="cs-card">
-            <div class="cs-card__row">
-              <span class="cs-card__label">총 연면적</span>
-              <div class="cs-card__val-wrap">
-                <span class="cs-card__val">{{ totalFloorArea.toLocaleString() }}</span>
-                <span class="cs-unit">㎡</span>
-              </div>
-            </div>
-            <div class="stacked-bar">
-              <div class="stacked-bar__layer stacked-bar__layer--blue" />
-              <div class="stacked-bar__layer stacked-bar__layer--pink" :style="{ width: floorMixedWidth }" />
-              <div class="stacked-bar__layer stacked-bar__layer--yellow" :style="{ width: floorResidenceWidth }" />
-            </div>
-          </div>
+          <VChart class="area-chart" :option="siteAreaChartOption" autoresize />
         </div>
-      </template>
+
+        <!-- 총 연면적 -->
+        <div class="cs-card">
+          <div class="cs-card__row">
+            <span class="cs-card__label">총 연면적</span>
+            <div class="cs-card__val-wrap">
+              <span class="cs-card__val">{{ totalFloorArea.toLocaleString() }}</span>
+              <span class="cs-unit">㎡</span>
+            </div>
+          </div>
+          <VChart class="area-chart" :option="floorAreaChartOption" autoresize />
+        </div>
+      </div>
     </div>
 
     <!-- 전력 사용량 예측 -->
@@ -77,28 +67,9 @@
         </v-icon>
       </div>
 
-      <template v-if="openSections.electricity">
-        <div class="cs-chart-box" @click.stop>
-          <div class="cs-legend">
-            <span class="cs-legend__dot cs-legend__dot--teal" />
-            <span class="cs-legend__name">연간사용량(MWh/년)</span>
-          </div>
-          <div class="elec-chart">
-            <div class="elec-chart__grid">
-              <div v-for="n in 8" :key="n" class="elec-chart__grid-line" />
-            </div>
-            <div class="elec-chart__bars">
-              <div v-for="item in electricityData" :key="item.label" class="elec-bar-group">
-                <span class="elec-bar-group__val">{{ item.value }}</span>
-                <div class="elec-bar-group__track">
-                  <div class="elec-bar-group__bar" :style="{ height: item.pct + '%' }" />
-                </div>
-                <span class="elec-bar-group__label">{{ item.label }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
+      <div v-if="openSections.electricity" class="cs-chart-box" @click.stop>
+        <VChart class="elec-chart" :option="electricityChartOption" autoresize />
+      </div>
     </div>
 
     <!-- 열 사용량 예측 -->
@@ -119,38 +90,26 @@
         </v-icon>
       </div>
 
-      <template v-if="openSections.heat">
-        <div class="cs-chart-box" @click.stop>
-          <div class="cs-legend">
-            <span class="cs-legend__dot cs-legend__dot--teal" />
-            <span class="cs-legend__name">난방/급탕용</span>
-            <span class="cs-legend__dot cs-legend__dot--gray" />
-            <span class="cs-legend__name">냉방용</span>
-            <span class="cs-legend__dot cs-legend__dot--indigo" />
-            <span class="cs-legend__name">취사용</span>
-          </div>
-          <div class="heat-chart">
-            <div v-for="item in heatData" :key="item.label" class="heat-row">
-              <span class="heat-row__label">{{ item.label }}</span>
-              <div class="heat-row__track">
-                <div class="heat-row__seg heat-row__seg--teal"   :style="{ width: item.heatingPct + '%' }" />
-                <div class="heat-row__seg heat-row__seg--gray"   :style="{ width: item.coolingPct + '%' }" />
-                <div class="heat-row__seg heat-row__seg--indigo" :style="{ width: item.cookingPct + '%' }" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
+      <div v-if="openSections.heat" class="cs-chart-box" @click.stop>
+        <VChart class="heat-chart" :option="heatChartOption" autoresize />
+      </div>
     </div>
 
   </div>
 </template>
 
 <script setup>
-import { reactive, computed, onMounted } from 'vue'
-import { useLandStore }   from '@/stores/land'
-import { useMapStore }    from '@/stores/map'
+import { reactive, ref, computed, onMounted } from 'vue'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { BarChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
+import VChart from 'vue-echarts'
+import { useLandStore }    from '@/stores/land'
+import { useMapStore }     from '@/stores/map'
 import { fetchCarbonData } from '@/api/evalCenterApi'
+
+use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, LegendComponent])
 
 const props = defineProps({
   planId: { type: String, required: true },
@@ -165,50 +124,159 @@ const isAreaActive        = computed(() => mapStore.planDialogs[props.planId]?.a
 const isElectricityActive = computed(() => mapStore.planDialogs[props.planId]?.electricity ?? false)
 const isHeatActive        = computed(() => mapStore.planDialogs[props.planId]?.heat        ?? false)
 
-// ── 면적 구성비 ───────────────────────────────────────────────
+// ── 면적 구성비 (land store) ──────────────────────────────────────────────
 const rows = computed(() => landStore.plans[props.planId]?.dataRows ?? [])
 
-const totalSiteArea  = computed(() => rows.value.reduce((s, r) => s + (Number(r.면적)  || 0), 0))
+const totalSiteArea  = computed(() => rows.value.reduce((s, r) => s + (Number(r.면적)   || 0), 0))
 const totalFloorArea = computed(() => rows.value.reduce((s, r) => s + (Number(r.연면적) || 0), 0))
 
-const residenceArea  = computed(() => rows.value.filter(r => r.구분 === '주거용지').reduce((s, r) => s + (Number(r.면적) || 0), 0))
-const commerceArea   = computed(() => rows.value.filter(r => r.구분 === '상업용지').reduce((s, r) => s + (Number(r.면적) || 0), 0))
-const residenceFloor = computed(() => rows.value.filter(r => r.구분 === '주거용지').reduce((s, r) => s + (Number(r.연면적) || 0), 0))
-const commerceFloor  = computed(() => rows.value.filter(r => r.구분 === '상업용지').reduce((s, r) => s + (Number(r.연면적) || 0), 0))
+const AREA_GROUPS   = ['주거용지', '상업용지', '기타']
+const AREA_COLORS   = { 주거용지: '#ffda7f', 상업용지: '#ffaeae', 기타: '#72aaff' }
+const AREA_GROUP_LABEL = { 주거용지: '주거용지', 상업용지: '상업용지', 기타: '기타시설' }
 
-function pct(num, total) {
-  if (!total) return '0%'
-  return `${Math.min((num / total) * 100, 100).toFixed(1)}%`
+function groupAreaRows(field) {
+  const acc = { 주거용지: 0, 상업용지: 0, 기타: 0 }
+  for (const r of rows.value) {
+    const v = Number(r[field]) || 0
+    if (r.구분 === '주거용지')  acc.주거용지 += v
+    else if (r.구분 === '상업용지') acc.상업용지 += v
+    else acc.기타 += v
+  }
+  return acc
 }
 
-const siteResidenceWidth = computed(() => pct(residenceArea.value, totalSiteArea.value))
-const siteMixedWidth     = computed(() => pct(residenceArea.value + commerceArea.value, totalSiteArea.value))
-const floorResidenceWidth = computed(() => pct(residenceFloor.value, totalFloorArea.value))
-const floorMixedWidth    = computed(() => pct(residenceFloor.value + commerceFloor.value, totalFloorArea.value))
+const CHART_LEGEND_BOTTOM = {
+  bottom: 0,
+  left: 'center',
+  itemWidth: 8,
+  itemHeight: 8,
+  textStyle: { fontSize: 11, color: '#888' },
+}
 
-// ── 전력 사용량 예측 ──────────────────────────────────────────
-const electricityData = reactive([])
+function makeAreaBarOption(groupAcc, total) {
+  const items = AREA_GROUPS
+    .filter(g => groupAcc[g] > 0)
+    .map(g => ({ name: AREA_GROUP_LABEL[g], value: groupAcc[g], color: AREA_COLORS[g] }))
 
-// ── 열 사용량 예측 ────────────────────────────────────────────
-const heatData = reactive([])
+  return {
+    grid: { top: 6, bottom: 34, left: 0, right: 0 },
+    xAxis: { type: 'value', show: false, max: total },
+    yAxis: { type: 'category', show: false, data: [''] },
+    tooltip: {
+      trigger: 'item',
+      formatter: (p) => {
+        const pct = total > 0 ? ((p.value / total) * 100).toFixed(1) : 0
+        return `${p.seriesName}: ${Number(p.value).toLocaleString()}㎡ (${pct}%)`
+      },
+    },
+    legend: CHART_LEGEND_BOTTOM,
+    series: items.map(item => ({
+      type: 'bar',
+      name: item.name,
+      stack: 'total',
+      barWidth: 20,
+      data: [item.value],
+      itemStyle: { color: item.color },
+    })),
+  }
+}
+
+const siteAreaChartOption  = computed(() => makeAreaBarOption(groupAreaRows('면적'),   totalSiteArea.value))
+const floorAreaChartOption = computed(() => makeAreaBarOption(groupAreaRows('연면적'), totalFloorArea.value))
+
+// ── 전력 사용량 예측 (세로 바) ───────────────────────────────────────────
+const electricityItems = ref([])
+
+const electricityChartOption = computed(() => {
+  if (!electricityItems.value.length) return {}
+  const labels = electricityItems.value.map(i => i.label)
+  const values = electricityItems.value.map(i => i.value)
+  return {
+    grid: { top: 28, bottom: 28, left: 42, right: 10 },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      axisLabel: { fontSize: 11, color: '#5a5a5a' },
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: '#e0e0e0' } },
+    },
+    yAxis: {
+      type: 'value',
+      name: 'MWh/년',
+      nameTextStyle: { fontSize: 10, color: '#888' },
+      axisLabel: { fontSize: 10, color: '#888' },
+      splitLine: { lineStyle: { color: '#e8e8e8' } },
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: (p) => `${p.name}: ${Number(p.value).toFixed(3)} MWh/년`,
+    },
+    series: [{
+      type: 'bar',
+      data: values,
+      barWidth: 20,
+      itemStyle: { color: '#71baa4', borderRadius: [2, 2, 0, 0] },
+      label: {
+        show: true,
+        position: 'top',
+        fontSize: 10,
+        color: '#373737',
+        formatter: (p) => Number(p.value).toFixed(3),
+      },
+    }],
+  }
+})
+
+// ── 열 사용량 예측 (가로 바) ──────────────────────────────────────────────
+const heatItems  = ref([])
+const heatMaxVal = ref(1)
+
+const heatChartOption = computed(() => {
+  if (!heatItems.value.length) return {}
+  const labels  = heatItems.value.map(i => i.label)
+  const heating = heatItems.value.map(i => i.heating)
+  const cooling = heatItems.value.map(i => i.cooling)
+  const cooking = heatItems.value.map(i => i.cooking)
+  return {
+    legend: {
+      top: 0,
+      left: 'center',
+      itemWidth: 8,
+      itemHeight: 8,
+      textStyle: { fontSize: 11, color: '#888' },
+    },
+    grid: { top: 30, bottom: 8, left: 50, right: 10 },
+    xAxis: { type: 'value', show: false, max: heatMaxVal.value },
+    yAxis: {
+      type: 'category',
+      data: labels,
+      axisLabel: { fontSize: 11, color: '#5a5a5a' },
+      axisTick: { show: false },
+      axisLine: { show: false },
+    },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params) => {
+        const name = params[0]?.axisValue ?? ''
+        const lines = params
+          .filter(p => p.value > 0)
+          .map(p => `${p.marker}${p.seriesName}: ${p.value}`)
+        return [name, ...lines].join('<br/>')
+      },
+    },
+    series: [
+      { type: 'bar', name: '난방/급탕용', stack: 'total', barWidth: 14, data: heating, itemStyle: { color: '#71baa4' } },
+      { type: 'bar', name: '냉방용',      stack: 'total', barWidth: 14, data: cooling, itemStyle: { color: '#d5d5d5' } },
+      { type: 'bar', name: '취사용',      stack: 'total', barWidth: 14, data: cooking, itemStyle: { color: '#8fa6ff' } },
+    ],
+  }
+})
 
 onMounted(async () => {
   const data = await fetchCarbonData(props.planId)
-
-  const maxElec = Math.max(...data.electricity.map(i => i.value))
-  data.electricity.forEach(item => {
-    electricityData.push({ ...item, pct: maxElec > 0 ? (item.value / maxElec) * 100 : 0 })
-  })
-
-  data.heat.items.forEach(item => {
-    const max = data.heat.maxVal || 1
-    heatData.push({
-      label:      item.label,
-      heatingPct: (item.heating / max) * 100,
-      coolingPct: (item.cooling / max) * 100,
-      cookingPct: (item.cooking / max) * 100,
-    })
-  })
+  electricityItems.value = data.electricity
+  heatItems.value        = data.heat.items
+  heatMaxVal.value       = data.heat.maxVal || 1
 })
 </script>
 
@@ -248,9 +316,7 @@ onMounted(async () => {
     }
   }
 
-  &--active {
-    background: var(--color-primary-light);
-  }
+  &--active { background: var(--color-primary-light); }
 
   &__head {
     display: flex;
@@ -288,7 +354,7 @@ onMounted(async () => {
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: 14px;
 
   &__row {
     display: flex;
@@ -325,166 +391,17 @@ onMounted(async () => {
   font-style: normal;
 }
 
-// ── 스택 바 ───────────────────────────────────────────────────
-.stacked-bar {
-  position: relative;
-  width: 100%;
-  height: 11px;
-
-  &__layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-radius: 2px;
-
-    &--blue   { width: 100%; background: #72aaff; z-index: 1; }
-    &--pink   { background: #ffaeae; z-index: 2; }
-    &--yellow { background: #ffda7f; z-index: 3; }
-  }
-}
-
-// ── 범례 ─────────────────────────────────────────────────────
-.cs-legend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.cs-legend__dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 6px;
-  flex-shrink: 0;
-
-  &--teal  { background: #71baa4; }
-  &--gray  { background: #d5d5d5; }
-  &--indigo { background: #8fa6ff; }
-}
-
-.cs-legend__name {
-  font-size: var(--fs-xs);
-  color: var(--color-text-body);
-  white-space: nowrap;
-  margin-right: 10px;
-}
-
 // ── 차트 공통 박스 ────────────────────────────────────────────
 .cs-chart-box {
   background: #f8f8f8;
   border-radius: 20px;
-  padding: 24px 17px;
+  padding: 20px 17px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-// ── 전력 사용량 세로 막대 차트 ───────────────────────────────
-.elec-chart {
-  position: relative;
-}
-
-.elec-chart__grid {
-  position: absolute;
-  inset: 0 0 22px 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  pointer-events: none;
-
-  &-line {
-    width: 100%;
-    height: 1px;
-    background: #e8e8e8;
-  }
-}
-
-.elec-chart__bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: 20px;
-  height: 160px;
-  padding-top: 10px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.elec-bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-
-  &__val {
-    font-size: var(--fs-base);
-    font-weight: var(--fw-semibold);
-    color: #373737;
-    letter-spacing: var(--ls-tight);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__track {
-    flex: 1;
-    width: 13px;
-    display: flex;
-    align-items: flex-end;
-  }
-
-  &__bar {
-    width: 100%;
-    background: #71baa4;
-    border-radius: 2px;
-    min-height: 2px;
-  }
-
-  &__label {
-    font-size: var(--fs-xs);
-    color: #5a5a5a;
-    letter-spacing: var(--ls-tight);
-    text-align: center;
-    white-space: nowrap;
-  }
-}
-
-// ── 열 사용량 수평 스택 바 ────────────────────────────────────
-.heat-chart {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.heat-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &__label {
-    width: 48px;
-    flex-shrink: 0;
-    font-size: var(--fs-xs);
-    color: #5a5a5a;
-    letter-spacing: var(--ls-tight);
-  }
-
-  &__track {
-    flex: 1;
-    height: 13px;
-    display: flex;
-    gap: 0;
-  }
-
-  &__seg {
-    height: 100%;
-    border-radius: 2px;
-
-    &--teal  { background: #71baa4; }
-    &--gray  { background: #d5d5d5; }
-    &--indigo { background: #8fa6ff; }
-  }
-}
+// ── ECharts 차트 크기 ─────────────────────────────────────────
+.area-chart { height: 70px; }
+.elec-chart { height: 180px; }
+.heat-chart { height: 130px; }
 </style>

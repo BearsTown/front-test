@@ -62,66 +62,59 @@
       </div>
 
       <transition name="expand">
-        <div v-if="sections[sec.key]" class="value-card">
+        <div v-if="sections[sec.key]" class="chart-card" @click.stop>
+
+          <!-- 인구 및 수용 계획 -->
           <template v-if="sec.key === 'population'">
-            <div class="value-card__row">
-              <span class="value-card__label">인구</span>
-              <span class="value-card__value" :class="{ 'value-card__value--empty': !hasPopulationData }">
-                {{ (popPlan.totalPopulation || 0).toLocaleString() }}<em class="value-card__unit">인</em>
+            <div class="chart-card__summary">
+              <span class="chart-card__label">총 인구</span>
+              <span class="chart-card__value" :class="{ 'chart-card__value--empty': !hasPopulationData }">
+                {{ (popPlan?.totalPopulation || 0).toLocaleString() }}<em class="chart-card__unit">인</em>
               </span>
             </div>
-            <template v-if="hasPopulationData">
-              <div class="stacked-bar">
-                <div class="stacked-bar__layer stacked-bar__layer--blue" />
-                <div class="stacked-bar__layer stacked-bar__layer--pink" :style="{ width: stackedPinkWidth }" />
-                <div class="stacked-bar__layer stacked-bar__layer--yellow" :style="{ width: stackedYellowWidth }" />
-              </div>
-              <div class="bar-legend">
-                <div class="bar-legend__item">
-                  <span class="bar-legend__dot bar-legend__dot--yellow" />
-                  <span class="bar-legend__name">단독주택</span>
-                  <span class="bar-legend__pct">{{ popPlan.populationDistrib.단독 }}%</span>
-                </div>
-                <div class="bar-legend__item">
-                  <span class="bar-legend__dot bar-legend__dot--pink" />
-                  <span class="bar-legend__name">공동주택</span>
-                  <span class="bar-legend__pct">{{ popPlan.populationDistrib.공동 }}%</span>
-                </div>
-                <div class="bar-legend__item">
-                  <span class="bar-legend__dot bar-legend__dot--blue" />
-                  <span class="bar-legend__name">주상복합</span>
-                  <span class="bar-legend__pct">{{ popPlan.populationDistrib.주상 }}%</span>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="value-card__bar value-card__bar--empty" />
-            </template>
+            <VChart
+              v-if="hasPopulationData"
+              class="chart"
+              :option="populationChartOption"
+              autoresize
+            />
+            <div v-else class="chart-empty">데이터를 입력해 주세요</div>
           </template>
 
+          <!-- 인구 및 주택건설 계획 -->
           <template v-else-if="sec.key === 'housing'">
-            <div class="value-card__row">
-              <span class="value-card__label">면적</span>
-              <span class="value-card__value" :class="{ 'value-card__value--empty': !form.housingArea }">
-                {{ (form.housingArea || 0).toLocaleString() }}<em class="value-card__unit">m²</em>
+            <div class="chart-card__summary">
+              <span class="chart-card__label">총 면적</span>
+              <span class="chart-card__value" :class="{ 'chart-card__value--empty': !hasHousingData }">
+                {{ housingAreaTotal.toLocaleString() }}<em class="chart-card__unit">m²</em>
               </span>
             </div>
-            <div class="value-card__bar" :class="form.housingArea ? '' : 'value-card__bar--empty'">
-              <div v-if="form.housingArea" class="value-card__fill" :style="{ width: barPct(form.housingArea, 1000000) }" />
-            </div>
+            <VChart
+              v-if="hasHousingData"
+              class="chart"
+              :option="housingChartOption"
+              autoresize
+            />
+            <div v-else class="chart-empty">데이터를 입력해 주세요</div>
           </template>
 
+          <!-- 토지이용계획 -->
           <template v-else-if="sec.key === 'land'">
-            <div class="value-card__row">
-              <span class="value-card__label">면적</span>
-              <span class="value-card__value" :class="{ 'value-card__value--empty': !form.landArea }">
-                {{ (form.landArea || 0).toLocaleString() }}<em class="value-card__unit">m²</em>
+            <div class="chart-card__summary">
+              <span class="chart-card__label">총 면적</span>
+              <span class="chart-card__value" :class="{ 'chart-card__value--empty': !hasLandData }">
+                {{ landAreaTotal.toLocaleString() }}<em class="chart-card__unit">m²</em>
               </span>
             </div>
-            <div class="value-card__bar" :class="form.landArea ? '' : 'value-card__bar--empty'">
-              <div v-if="form.landArea" class="value-card__fill" :style="{ width: barPct(form.landArea, 1000000) }" />
-            </div>
+            <VChart
+              v-if="hasLandData"
+              class="chart"
+              :option="landChartOption"
+              autoresize
+            />
+            <div v-else class="chart-empty">데이터를 입력해 주세요</div>
           </template>
+
         </div>
       </transition>
     </div>
@@ -131,22 +124,31 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useScenarioStore }   from '@/stores/scenario'
-import { usePopulationStore } from '@/stores/population'
-import { useMapStore }        from '@/stores/map'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { BarChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
+import VChart from 'vue-echarts'
+import { useScenarioStore }       from '@/stores/scenario'
+import { usePopulationStore }     from '@/stores/population'
+import { useHousingStore }        from '@/stores/housing'
+import { useLandStore, LAND_GROUPS } from '@/stores/land'
+import { useMapStore }            from '@/stores/map'
+
+use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, LegendComponent])
 
 const props = defineProps({
   planId: { type: String, required: true },
 })
-
 defineEmits(['file-upload-click'])
 
 const scenarioStore   = useScenarioStore()
 const populationStore = usePopulationStore()
+const housingStore    = useHousingStore()
+const landStore       = useLandStore()
 const mapStore        = useMapStore()
 
-const plan = computed(() => scenarioStore.plans[props.planId])
-
+const plan     = computed(() => scenarioStore.plans[props.planId])
 const form     = computed(() => plan.value.form)
 const sections = computed(() => plan.value.sections)
 
@@ -182,16 +184,107 @@ function isDialogActive(key) {
   return mapStore.planDialogs[props.planId]?.[key] ?? false
 }
 
+// ── 공통 차트 헬퍼 ───────────────────────────────────────────────────────
+const CHART_LEGEND = {
+  bottom: 0,
+  left: 'center',
+  itemWidth: 8,
+  itemHeight: 8,
+  textStyle: { fontSize: 11, color: '#888' },
+}
+
+const makeStackedBarOption = (items, total, unit) => ({
+  grid: { top: 6, bottom: 34, left: 0, right: 0 },
+  xAxis: { type: 'value', show: false, max: total },
+  yAxis: { type: 'category', show: false, data: [''] },
+  tooltip: {
+    trigger: 'item',
+    formatter: (p) => {
+      const pct = total > 0 ? ((p.value / total) * 100).toFixed(1) : 0
+      return `${p.seriesName}: ${Number(p.value).toLocaleString()}${unit} (${pct}%)`
+    },
+  },
+  legend: CHART_LEGEND,
+  series: items.map(item => ({
+    type: 'bar',
+    name: item.name,
+    stack: 'total',
+    barWidth: 20,
+    data: [item.value],
+    itemStyle: { color: item.color },
+    emphasis: { focus: 'series' },
+  })),
+})
+
+// ── 인구 ─────────────────────────────────────────────────────────────────
+const POP_COLORS = { 단독주택: '#ffda7f', 공동주택: '#ffaeae', 주상복합: '#72aaff' }
+
 const popPlan           = computed(() => populationStore.plans[props.planId])
 const hasPopulationData = computed(() => (popPlan.value?.totalPopulation ?? 0) > 0)
 
-const stackedYellowWidth = computed(() => `${popPlan.value?.populationDistrib.단독 ?? 0}%`)
-const stackedPinkWidth   = computed(() => {
-  const d = popPlan.value?.populationDistrib ?? { 단독: 0, 공동: 0 }
-  return `${d.단독 + d.공동}%`
+const populationChartOption = computed(() => {
+  const rows = popPlan.value?.populationRows ?? []
+  if (!rows.length) return {}
+  const total = popPlan.value.totalPopulation
+  return makeStackedBarOption(
+    rows.map(r => ({ name: r.구분, value: r.인구, color: POP_COLORS[r.구분] ?? '#ccc' })),
+    total,
+    '인',
+  )
 })
 
-const barPct = (val, max) => `${Math.min((val / max) * 100, 100)}%`
+// ── 주택건설 ─────────────────────────────────────────────────────────────
+const HOUSING_COLORS = { 단독주택: '#ffda7f', 공동주택: '#ffaeae', 주상복합: '#72aaff' }
+const HOUSING_TYPES  = ['단독주택', '공동주택', '주상복합']
+
+const housingPlan      = computed(() => housingStore.plans[props.planId])
+const housingAreaRow   = computed(() => housingPlan.value?.housingTypeRows?.[0])
+const housingAreaTotal = computed(() => housingAreaRow.value?.합계 ?? 0)
+const hasHousingData   = computed(() => housingAreaTotal.value > 0)
+
+const housingChartOption = computed(() => {
+  const row = housingAreaRow.value
+  if (!row || !hasHousingData.value) return {}
+  return makeStackedBarOption(
+    HOUSING_TYPES
+      .filter(t => (row[t] ?? 0) > 0)
+      .map(t => ({ name: t, value: row[t], color: HOUSING_COLORS[t] })),
+    housingAreaTotal.value,
+    '㎡',
+  )
+})
+
+// ── 토지이용 ─────────────────────────────────────────────────────────────
+const LAND_COLORS = {
+  '주거용지':         '#5470c6',
+  '상업용지':         '#91cc75',
+  '도시기반시설용지': '#fac858',
+  '기타시설용지':     '#ee6666',
+}
+
+const landPlan        = computed(() => landStore.plans[props.planId])
+const landGroupTotals = computed(() => {
+  const acc = {}
+  for (const r of landPlan.value?.dataRows ?? []) {
+    acc[r.구분] = (acc[r.구분] || 0) + (Number(r.면적) || 0)
+  }
+  return acc
+})
+const landAreaTotal = computed(() =>
+  Object.values(landGroupTotals.value).reduce((s, v) => s + v, 0)
+)
+const hasLandData = computed(() => landAreaTotal.value > 0)
+
+const landChartOption = computed(() => {
+  if (!hasLandData.value) return {}
+  return makeStackedBarOption(
+    LAND_GROUPS
+      .filter(g => (landGroupTotals.value[g] || 0) > 0)
+      .map(g => ({ name: g, value: landGroupTotals.value[g], color: LAND_COLORS[g] })),
+    landAreaTotal.value,
+    '㎡',
+  )
+})
 </script>
 
 <style lang="scss" scoped>
@@ -350,16 +443,17 @@ const barPct = (val, max) => `${Math.min((val / max) * 100, 100)}%`
   &--open { transform: rotate(90deg); }
 }
 
-.value-card {
+// ── 차트 카드 ────────────────────────────────────────────────────────────
+.chart-card {
   background: var(--color-surface-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 
-  &__row {
+  &__summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -386,88 +480,32 @@ const barPct = (val, max) => `${Math.min((val / max) * 100, 100)}%`
 
   &__unit {
     font-size: var(--fs-base);
-    font-weight: $font-weight-regular;
+    font-weight: 400;
     color: var(--color-text-unit);
     font-style: normal;
   }
-
-  &__bar {
-    height: 11px;
-    background: var(--color-progress-track);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-
-    &--empty { background: #d6d6d6; }
-  }
-
-  &__fill {
-    height: 100%;
-    background: var(--color-primary);
-    border-radius: var(--radius-sm);
-    transition: width 0.3s ease;
-  }
 }
 
-.stacked-bar {
-  position: relative;
-  width: 100%;
-  height: 11px;
-
-  &__layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-radius: 2px;
-
-    &--blue   { width: 100%; background: #72aaff; z-index: 1; }
-    &--pink   { background: #ffaeae; z-index: 2; }
-    &--yellow { background: #ffda7f; z-index: 3; }
-  }
+.chart {
+  height: 70px;
 }
 
-.bar-legend {
+.chart-empty {
+  height: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-
-  &__item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  &__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: var(--radius-full);
-    flex-shrink: 0;
-
-    &--yellow { background: #ffda7f; }
-    &--pink   { background: #ffaeae; }
-    &--blue   { background: #72aaff; }
-  }
-
-  &__name {
-    font-size: var(--fs-xs);
-    color: var(--color-text-hint);
-    letter-spacing: var(--ls-tight);
-  }
-
-  &__pct {
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    color: var(--color-text-body);
-    letter-spacing: var(--ls-tight);
-  }
+  justify-content: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-hint);
+  letter-spacing: var(--ls-tight);
 }
 
+// ── Expand Transition ────────────────────────────────────────────────────
 .expand-enter-active,
 .expand-leave-active {
   transition: opacity var(--transition-base), max-height var(--transition-base);
   overflow: hidden;
-  max-height: 300px;
+  max-height: 200px;
 }
 .expand-enter-from,
 .expand-leave-to {
