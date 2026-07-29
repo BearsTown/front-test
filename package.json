@@ -1,5 +1,5 @@
 {
-  "name": "admin-krds",
+  "name": "jungdo-simulation",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,9 @@
     "axios": "^1.13.6",
     "echarts": "^5.6.0",
     "krds-vue": "^1.1.0",
-    "ol": "^10.8.0",
+    "ol": "^8.2.0",
     "pinia": "^3.0.4",
+    "sass": "^1.101.0",
     "vue": "^3.5.29",
     "vue-echarts": "^7.0.3",
     "vue-router": "^5.0.3",

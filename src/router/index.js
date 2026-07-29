@@ -6,33 +6,26 @@ import { useAuthStore } from '@/stores/auth'
 // const AUTH_REQUIRED = ['/carbon-estimation', '/green-city', '/plan-support', '/monitoring']
 const AUTH_REQUIRED = []
 
-// views/**/*.vue 파일을 자동으로 라우트로 등록
-// 경로 변환 규칙 (파일명에서 View.vue 제거 후 kebab-case 변환)
-//   HomeView.vue                              → /
-//   carbon-estimation/CarbonEstimationView.vue → /carbon-estimation
-//   green-city/GreenCityView.vue              → /green-city
-//   plan-support/PlanSupportView.vue          → /plan-support
-//   monitoring/MonitoringView.vue             → /monitoring
-const viewModules = import.meta.glob('@/views/**/*.vue')
-
-const autoRoutes = Object.entries(viewModules).map(([filePath, component]) => {
-  let path = filePath
-    .replace('/src/views/', '')            // 접두사 제거
-    .replace(/View\.vue$/, '')             // View.vue 제거
-    .replace(/([a-z])([A-Z])/g, '$1-$2')  // PascalCase → kebab-case
-    .toLowerCase()
-    .replace(/^(.+)\/\1$/, '$1')           // "green-city/green-city" → "green-city" (중복 세그먼트 제거)
-
-  if (path === 'home') path = ''           // HomeView → 루트 경로
-
-  return { path, component }
-})
-
 const routes = [
+  { path: '/', redirect: '/scenario' },
+  { path: '/map', redirect: '/scenario' },
   {
-    path: '/',
-    component: () => import('@/layouts/DefaultLayout.vue'),
-    children: autoRoutes,
+    path: '/scenario',
+    component: () => import('@/components/layout/ScenarioLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Scenario',
+        component: () => import('@/views/MapView.vue'),
+        meta: { title: '시나리오 | 탄소 녹색도시 ' },
+      },
+    ],
+  },
+  {
+    path: '/compare',
+    name: 'Compare',
+    component: () => import('@/components/layout/CompareLayout.vue'),
+    meta: { title: '비교분석 | 탄소 녹색도시' },
   },
 ]
 
@@ -46,7 +39,7 @@ router.beforeEach((to) => {
   const needsAuth = AUTH_REQUIRED.some(p => to.path.startsWith(p))
   if (!needsAuth) return true
 
-  const authStore = useAuthStore()
+  const authStore  = useAuthStore()
   if (authStore.loggedIn) return true
 
   // simulation은 독립 창으로 열리므로 홈으로 이동 (app의 로그인 모달 없음)

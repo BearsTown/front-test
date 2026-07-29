@@ -1,0 +1,129 @@
+/**
+ * Design Tokens — Carbon Green City
+ * 앞으로 작성되는 모든 컴포넌트는 var(--*) 형태로 참조합니다.
+ */
+:root {
+
+  /* ────────────────────────────────────
+     Primary (인터랙션 blue)
+  ──────────────────────────────────── */
+  --color-primary:        #256EF4;
+  --color-primary-hover:  #1452C4;
+  --color-primary-light:  #ECF2FE;   /* 탭 active bg, primary 연배경 */
+
+  /* ────────────────────────────────────
+     Text
+  ──────────────────────────────────── */
+  --color-text-title:       #232323;  /* 패널 타이틀, 가장 강조 */
+  --color-text-body:        #333333;  /* 다이얼로그 타이틀, 라벨 */
+  --color-text-tab:         #373737;  /* 비활성 탭 */
+  --color-text-input:       #464C53;  /* 인풋 입력값 */
+  --color-text-secondary:   #505050;  /* 프로젝트 버튼 등 보조 */
+  --color-text-section:     #262626;  /* 섹션 헤더 */
+  --color-text-cancel:      #656565;  /* 취소 버튼, 닫기 */
+  --color-text-hint:        #8f8f8f;  /* 스텝 라벨, 비활성 hint */
+  --color-text-sub:         #9a9a9a;  /* 드롭존 서브텍스트 */
+  --color-text-value:       #bababa;  /* value-card 숫자 (0인, 0m²) */
+  --color-text-unit:        #6a6a6a;  /* value-card 단위 (인, m²) */
+  --color-text-placeholder: #bcbcbc;  /* 인풋 placeholder */
+  --color-text-nav:         #717171;  /* 네비게이션 기본 아이콘/라벨 */
+  --color-text-white:       #ffffff;
+
+  /* ────────────────────────────────────
+     Background / Surface
+  ──────────────────────────────────── */
+  --color-white:            #ffffff;
+  --color-surface-map:      #e8e4dc;  /* 지도 레이아웃 배경 */
+  --color-surface-base:     #F4F6F9;  /* 앱 기본 배경 */
+  --color-surface-section:  #f7f7f7;  /* 섹션 헤더 bg, step group label */
+  --color-surface-input:    #f6f6f6;  /* 인풋 필드 bg */
+  --color-surface-readonly: #f0f0f0;  /* readonly 인풋 bg */
+  --color-surface-card:     #FAFAFA;  /* value card, dropzone bg */
+  --color-surface-nav:      #1E2A3B;  /* 다크 사이드바 (미사용 시 대비) */
+  --color-surface-logo:     #e9e9e9;  /* 로고 배지 bg */
+
+  /* ────────────────────────────────────
+     Border
+  ──────────────────────────────────── */
+  --color-border:           #eaeaea;  /* 기본 테두리 (패널, 카드) */
+  --color-border-subtle:    #f1f1f1;  /* 서브섹션 구분선 */
+  --color-border-button:    #e7e7e7;  /* 버튼 테두리 */
+  --color-border-divider:   #e5e5e5;  /* 푸터/헤더 구분선 */
+  --color-border-tab:       #e8e8e8;  /* 탭 하단 */
+  --color-border-nav:       #f2f2f2;  /* 네비게이션 우측 테두리 */
+  --color-border-dashed:    #d9d9d9;  /* 드롭존 dashed border */
+
+  /* ────────────────────────────────────
+     State / Feedback
+  ──────────────────────────────────── */
+  --color-disabled-bg:      #d5d5d5;  /* 비활성 버튼 bg */
+  --color-progress-track:   #d6d6d6;  /* value-card progress bar 트랙 */
+  --color-progress-step:    #e5e5e5;  /* step badge/bar 비활성 */
+  --color-success:          #4CAF50;
+  --color-warning:          #FF9800;
+  --color-error:            #F44336;
+
+  /* ────────────────────────────────────
+     Overlay
+  ──────────────────────────────────── */
+  --color-backdrop:         rgba(0, 0, 0, 0.3);
+
+  /* ────────────────────────────────────
+     Typography
+  ──────────────────────────────────── */
+  --fw-regular:    400;
+  --fw-medium:     500;
+  --fw-semibold:   600;
+  --fw-bold:       700;
+
+  --fs-xs:   10px;
+  --fs-sm:   12px;
+  --fs-md:   13px;
+  --fs-base: 14px;
+  --fs-lg:   15px;
+  --fs-xl:   16px;
+  --fs-2xl:  18px;
+
+  --ls-tight: -0.02em;
+
+  /* ────────────────────────────────────
+     Border Radius
+  ──────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* ────────────────────────────────────
+     Shadow
+  ──────────────────────────────────── */
+  --shadow-panel:  2px 0px 24px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 2px 4px 24px rgba(0, 0, 0, 0.12);
+  --shadow-float:  2px 4px 24px rgba(0, 0, 0, 0.16);
+
+  /* ────────────────────────────────────
+     Transition
+  ──────────────────────────────────── */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.35s ease;
+
+  /* ────────────────────────────────────
+     Z-index
+  ──────────────────────────────────── */
+  --z-map-control: 10;
+  --z-panel:       50;
+  --z-overlay:     60;
+  --z-nav:         200;
+  --z-modal:       300;
+
+  /* ────────────────────────────────────
+     Layout
+  ──────────────────────────────────── */
+  --nav-width:    77px;
+  --panel-width:  450px;
+  --header-h:     66px;
+  --tab-h:        48px;
+  --footer-h:     66px;
+}

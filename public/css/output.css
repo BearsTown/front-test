@@ -14,7 +14,7 @@
   --font-weight-medium:  500;
   --font-weight-semibold:600;
   --font-weight-bold:    700;
-  
+
   --font-size-base: 62.5%;
   --font-size-xs:  1.3rem;
   --font-size-sm:  1.5rem;
@@ -235,12 +235,15 @@ html {
   box-sizing: border-box;
 }
 
+/*
 *:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
   -webkit-box-shadow: inset 0 0 0 3px var(--gray-0);
           box-shadow: inset 0 0 0 3px var(--gray-0);
 }
+*/
+
 
 /**:focus { outline: .2rem solid var(--gray-0); outline-offset:0; box-shadow: 0 0 0 .4rem var(--color-primary);}*/
 body {
@@ -280,7 +283,7 @@ fieldset, hr {
 input, select {
   max-width: 100%;
   vertical-align: middle;
-  min-height: 4.8rem;
+  /*min-height: 4.8rem;*/
 }
 input:-moz-placeholder-shown, select:-moz-placeholder-shown {
   text-overflow: ellipsis;

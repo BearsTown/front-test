@@ -1,4 +1,7 @@
 @use 'variables' as *;
+@use 'mixins' as *;
+@use 'reset';
+
 // Pretendard (cdn.jsdelivr.net — 경량 동적 서브셋)
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 
@@ -13,7 +16,6 @@ html, body {
   height: 100%;
   font-family: $font-family-base;
   font-size: $font-size-base;
-  color: $color-text-dark;
   overflow: hidden;
 }
 
@@ -32,4 +34,29 @@ button {
   border: none;
   background: none;
   font-family: inherit;
+}
+
+// ==========================================
+// Utility classes
+// ==========================================
+.sr-only {
+  @include sr-only;
+}
+
+.text-truncate {
+  @include text-truncate;
+}
+
+// ==========================================
+// Scrollbar global
+// ==========================================
+* {
+  @include scrollbar;
+}
+
+// ==========================================
+// Vuetify overrides
+// ==========================================
+.v-application {
+  font-family: $font-family-base !important;
 }
